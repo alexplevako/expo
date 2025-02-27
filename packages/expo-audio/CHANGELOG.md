@@ -10,7 +10,7 @@
 
 ### 🐛 Bug fixes
 
-- [Android] Fixing asset file path resolving. ([#34555](https://github.com/expo/expo/issues/34555) by [@alexplevako])
+- [Android] Fixing asset file path resolving. ([#34555](https://github.com/expo/expo/issues/34555) by [@alexplevako]) ([#35210](https://github.com/expo/expo/pull/35210) by [@alexplevako](https://github.com/alexplevako))
 
 ### 💡 Others
 
