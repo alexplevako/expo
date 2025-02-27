@@ -1,6 +1,7 @@
 package expo.modules.audio
 
 import android.Manifest
+import android.content.ContentResolver
 import android.content.Context
 import android.content.pm.PackageManager
 import android.media.AudioManager
@@ -33,6 +34,7 @@ import expo.modules.kotlin.modules.ModuleDefinition
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
+import java.io.File
 import kotlin.math.min
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
@@ -362,25 +364,36 @@ class AudioModule : Module() {
     }
   }
 
-  private fun createMediaItem(source: AudioSource?): MediaSource? = source?.let {
-    val factory = createDataSourceFactory(it)
-    it.uri?.let { uri ->
-      val item = MediaItem.fromUri(uri)
-      buildMediaSourceFactory(factory, item)
+  private fun createMediaItem(source: AudioSource?): MediaSource? = source?.uri?.let { uri ->
+    when {
+      uri.startsWith("http://") || uri.startsWith("https://") ->
+        buildMediaSourceFactory(httpDataSourceFactory(source.headers), MediaItem.fromUri(Uri.parse(uri)))
+      else ->
+        buildMediaSourceFactory(DefaultDataSource.Factory(context), MediaItem.fromUri(getResourceURI(uri)))
     }
   }
 
-  private fun createDataSourceFactory(audioSource: AudioSource): DataSource.Factory {
-    val isLocal = Util.isLocalFileUri(Uri.parse(audioSource.uri))
-    return if (isLocal) {
-      DefaultDataSource.Factory(context)
-    } else {
-      OkHttpDataSource.Factory(httpClient).apply {
-        audioSource.headers?.let { headers ->
-          setDefaultRequestProperties(headers)
-        }
-        DefaultDataSource.Factory(context, this)
+  private fun httpDataSourceFactory(headers: Map<String, String>?): DataSource.Factory {
+    return OkHttpDataSource.Factory(httpClient).apply {
+      headers?.let { headers ->
+        setDefaultRequestProperties(headers)
       }
+    }
+  }
+
+  private fun getResourceURI(file: String): Uri {
+    val resId = context.resources.getIdentifier(file, "raw", context.packageName)
+
+    return when {
+      resId == 0 ->
+        Uri.fromFile(File(file))
+      else ->
+        Uri.Builder()
+          .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+          .authority(context.packageName)
+          .appendPath("raw")
+          .appendPath(file)
+          .build()
     }
   }
 

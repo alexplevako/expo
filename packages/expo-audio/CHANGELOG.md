@@ -8,6 +8,8 @@
 
 ### 🐛 Bug fixes
 
+- [Android] Fixing asset file path resolving. ([#34555](https://github.com/expo/expo/issues/34555) by [@alexplevako])
+
 ### 💡 Others
 
 ## 0.3.4 — 2025-01-19
